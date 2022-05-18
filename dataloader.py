@@ -12,6 +12,17 @@ class ImageDataset(Dataset):
     self.data = []
     for fname in self.gen:
       self.data.append(fname)
+    self.classes = {
+        (0, 0) : 'male child',
+        (0, 1) : 'female child',
+        (1, 0) : 'young male',
+        (1, 1) : 'young female',
+        (2, 0) : 'middle age male',
+        (2, 1) : 'middle age female',
+        (3, 0) : 'eldery male',
+        (3, 1) : 'eldery female'
+    }
+    self.keys = list(self.classes.keys())
 
   def __len__(self):
     return len(self.data)
@@ -19,20 +30,10 @@ class ImageDataset(Dataset):
   def __getitem__(self, idx):
     fname = self.data[idx]
     image = read_image(fname)
-    label = self.getclass(fname)
+    label = self.getlabel(fname)
     return image, label
 
-  def getclass(self, fname):
-    classes = {
-        (0, 0) : 'chd_male',
-        (0, 1) : 'chd_female',
-        (1, 0) : 'yng_male',
-        (1, 1) : 'yng_female',
-        (2, 0) : 'mid_male',
-        (2, 1) : 'mid_female',
-        (3, 0) : 'eld_male',
-        (3, 1) : 'eld_female'
-    }
+  def getlabel(self, fname):
     age, gender, _, _ = fname[len(self.dir):].split('_')
     age, gender = int(age), int(gender)
     agebin = 0
@@ -41,6 +42,11 @@ class ImageDataset(Dataset):
     elif 40 < age <= 65: agebin = 2
     else: agebin = 3
 
-    categorical = classes[(agebin, gender)]
-    val = list(classes.values()).index(categorical)
+    categorical = self.classes[(agebin, gender)]
+    val = list(self.classes.values()).index(categorical)
     return np.array([0 if i != val else 1 for i in range(8)])
+
+  def getclass(self, onehot):
+    onehot = onehot.type(torch.int).tolist()
+    key = self.keys[onehot.index(1)]
+    return self.classes[key]
