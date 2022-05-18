@@ -11,7 +11,7 @@ class ImageDataset(Dataset):
     self.gen = glob.iglob(dir)
 
   def __len__(self):
-    return len(list(self.gen))
+    return sum(1 for _ in self.gen)
 
   def __getitem__(self, idx):
     fname = next(islice(self.gen, idx, None))
