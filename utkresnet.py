@@ -16,8 +16,9 @@ class ResNet18():
     self.test = ImageDataset(self.test_dir)
     self.num_class = len(self.train)
     self.resnet18 = self.makemodel()
+    self.utkresnet18 = self.loadmodel()
 
-  def train_resnet(self, dataset, epochs=10, batch_size=16, lr=1e-5):
+  def train_resnet(self, epochs=10, batch_size=16, lr=1e-5):
     model = model.to('cuda')
 
     crit = nn.CrossEntropyLoss()
@@ -47,7 +48,6 @@ class ResNet18():
     return losses, model
 
   def predict(self, model, image, label):
-    model.eval()
     with torch.no_grad():
       image = image.to('cuda')
       label = label.float().to('cuda')
@@ -61,4 +61,10 @@ class ResNet18():
     model = models.resnet18(pretrained=True)
     num_feat = model.fc.in_features
     model.fc = nn.Linear(num_feat, 8)
+    return model
+
+  def loadmodel(self):
+    model = self.makemodel()
+    model.load_state_dict(torch.load('resnet18_utk.pt'))
+    model.eval()
     return model
