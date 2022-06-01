@@ -4,14 +4,15 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, ToPILImage, Resize, Compose
 from itertools import islice
+from sklearn.preprocessing import OneHotEncoder
 
 class ImageDataset(Dataset):
   def __init__(self, dir):
+    self.counts = [0]*8
     self.dir = dir
     self.gen = glob.iglob(dir + '*')
-    self.data = self.populate()
     self.classes = {
         (0, 0) : 'male child',
         (0, 1) : 'female child',
@@ -23,7 +24,13 @@ class ImageDataset(Dataset):
         (3, 1) : 'eldery female'
     }
     self.keys = list(self.classes.keys())
-    self.transform = ToTensor()
+    self.counts = {i:0 for i in self.keys}
+    self.transform = Compose([
+                              ToTensor(),
+                              Resize(128)
+    ])
+    self.data = self.populate()
+    
 
   def __len__(self):
     return len(self.data)
@@ -34,7 +41,7 @@ class ImageDataset(Dataset):
     age, gender = data[1], data[2]
 
     image = self.transform(Image.open(fname))
-    label = self.getlabel(self.classes[(age, gender)])
+    label = self.keys.index((age, gender))
     return image, label
 
   def getlabel(self, c):
@@ -57,6 +64,8 @@ class ImageDataset(Dataset):
       elif 40 < age <= 65: agebin = 2
       else: agebin = 3
 
-      if (agebin in range(4)) and (gender in range(1)):
+      if (agebin in range(4)) and (gender in range(1)) and (agebin, gender) in self.keys:
         data.append((fname, agebin, gender))
+        self.counts[(agebin,gender)] += 1
+      
     return data
