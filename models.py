@@ -18,9 +18,8 @@ def PGD(model, image, target, device='cuda', n_iter=30, alpha=1e-3, eps=0.6):
   return pert
 
 class Generator(nn.Module):
-  def __init__(self, channels, target):
+  def __init__(self, target):
     super(Generator, self).__init__()
-    self.channels = channels
     self.target = target
     self.encoder = Encoder()
     self.resblocks = ResBlockTrain()
@@ -34,6 +33,29 @@ class Generator(nn.Module):
       out = self.resblocks(out)
       out = self.decoder(out)
       return out
+
+class Discriminator(nn.Module):
+  def __init__(self, channels=3):
+    super(Discriminator, self).__init__()
+    self.encode1 = EncodeBlock(3, 8, 7, 2, 3)
+    self.encode2 = EncodeBlock(8, 16, 3, 2, 1)
+    self.encode3 = EncodeBlock(16, 32, 3, 2, 1)
+    self.conv = nn.Conv2d(32, 64, 3, 2, 1)
+    self.dropout = nn.Dropout(0.2)
+    self.fc = nn.Linear(512, self.num_class)
+    self.sigmoid = nn.Sigmoid()
+
+  def forward(self, x):
+    out = self.encode1(x)
+    out = self.encode2(out)
+    out = self.encode3(out)
+    out = self.conv(out)
+    out = self.dropout(out)
+    out = torch.flatten(out)
+    class_prob = nn.Linear(out.shape[0], 8)
+    fake_prob = self.sigmoid(out)
+
+    return fake_prob, class_prob
 
 class EncodeBlock(nn.Module):
   def __init__(self, in_channels, out_channels, kernel, stride, padding):
