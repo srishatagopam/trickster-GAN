@@ -8,7 +8,7 @@ from torch.optim import lr_scheduler
 from time import time
 from sklearn.preprocessing import OneHotEncoder
 
-from dataloader import *
+# from dataloader import *
 
 class ResNet18():
   def __init__(self, dir='./data/', saved='resnet18_utk.pt', train=False, epochs=10, batch_size=16, lr=1e-5):

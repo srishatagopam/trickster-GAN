@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 import torch.nn as nn
 
 def PGD(model, image, target, device='cuda', n_iter=30, alpha=1e-3, eps=0.6):
