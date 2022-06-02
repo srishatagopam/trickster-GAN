@@ -42,7 +42,6 @@ class Discriminator(nn.Module):
     self.encode3 = EncodeBlock(16, 32, 3, 2, 1)
     self.conv = nn.Conv2d(32, 64, 3, 2, 1)
     self.dropout = nn.Dropout(0.2)
-    self.fc = nn.Linear(512, self.num_class)
     self.sigmoid = nn.Sigmoid()
 
   def forward(self, x):
