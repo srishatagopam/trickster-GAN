@@ -19,8 +19,8 @@ def train(G, D, target_model, data_path='./data/train/', device='cuda', batch_si
   G_losses = []
   D_losses = []
 
-  multi_crit = nn.CrossEntropyLoss()
-  binary_crit = nn.BCELoss()
+  CELoss = nn.CrossEntropyLoss()
+  BCELoss = nn.BCELoss()
 
   start = time()
 
@@ -44,13 +44,13 @@ def train(G, D, target_model, data_path='./data/train/', device='cuda', batch_si
       _, D_clean_pred = torch.max(D_clean_multi, 1)
       _, D_adv_pred = torch.max(D_adv_multi, 1)
 
-      L_C_adv = multi_crit(D_adv_pred, label)
+      L_C_adv = CELoss(D_adv_pred, label)
       L_C_adv.backward()
-      L_C_pert = multi_crit(D_pert_pred, label)
+      L_C_pert = CELoss(D_pert_pred, label)
       L_C_pert.backward()
 
-      L_S_clean = binary_crit(D_clean_bin, torch.ones_like(D_clean_bin).to(device))
-      L_S_pert = binary_crit(D_pert_bin, torch.zeros_like(D_pert_bin).to(device))
+      L_S_clean = BCELoss(D_clean_bin, torch.ones_like(D_clean_bin).to(device))
+      L_S_pert = BCELoss(D_pert_bin, torch.zeros_like(D_pert_bin).to(device))
       L_S = L_S_clean + L_S_pert
       L_S.backward()
 
@@ -74,11 +74,11 @@ def train(G, D, target_model, data_path='./data/train/', device='cuda', batch_si
       _, D_adv_pred = torch.max(D_adv_multi, 1)
       _, target_pert_pred = torch.max(target_pert, 1)
 
-      L_target_pert = multi_crit(target_pert_pred, target)
-      L_D_pert = multi_crit(D_pert_pred, target)
+      L_target_pert = CELoss(target_pert_pred, target)
+      L_D_pert = CELoss(D_pert_pred, target)
 
-      L_S_clean = binary_crit(D_clean_bin, torch.ones_like(D_clean_bin).to(device))
-      L_S_pert = binary_crit(D_pert_bin, torch.zeros_like(D_pert_bin).to(device))
+      L_S_clean = BCELoss(D_clean_bin, torch.ones_like(D_clean_bin).to(device))
+      L_S_pert = BCELoss(D_pert_bin, torch.zeros_like(D_pert_bin).to(device))
       L_S = L_S_clean + L_S_pert
 
       G_loss = L_target_pert + L_D_pert - L_S
